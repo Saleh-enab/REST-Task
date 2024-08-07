@@ -8,11 +8,11 @@ const generateSalt = () => {
 const hashPass = (plainPassword, salt) => {
     const hashedSalt = crypto.hash('sha256', salt)
     const password = crypto.createHash('sha256').update(plainPassword).update(hashedSalt).digest('hex')
-    return hashedSalt + "$" + password;
+    return salt + "$" + password;
 }
 
 const compare = (userPass, salt, enteredPass) => {
-    const hashedEnteredPass = hashPass(enteredPass, salt);
+    const hashedEnteredPass = hashPass(enteredPass, salt)
     if (hashedEnteredPass == userPass) {
         return true;
     } else {

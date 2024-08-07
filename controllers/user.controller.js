@@ -1,5 +1,6 @@
 import { userModel } from "../models/user.model.js";
-import * as passFunctions from '../utils/genetarePassword.js'
+import * as passFunctions from '../utils/genetarePassword.js';
+import jwt from 'jsonwebtoken';
 
 const register = async (req, res) => {
 
@@ -27,7 +28,29 @@ const register = async (req, res) => {
     }
 }
 
-const login = () => {
+const login = async (req, res) => {
+
+    try {
+        const { email, password } = req.body
+        const user = (await userModel.find({ email }))[0]
+
+        if (user.length === 0) {
+            console.log("Invalid mail")
+        }
+
+        const salt = user.password.split('$')[0];
+        const validPass = passFunctions.compare(user.password, salt, password);
+
+        if (validPass) {
+            const accessToken = jwt.sign({ name: user.name, email: user.email }, process.env.ACCESS_TOKEN_KEY);
+            res.json({ accessToken });
+        } else {
+            return res.sendStatus(401);
+        }
+
+    } catch (err) {
+        console.log(err);
+    }
 
 }
 
