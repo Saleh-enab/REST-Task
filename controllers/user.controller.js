@@ -1,9 +1,11 @@
 import { userModel } from "../models/user.model.js";
-import * as passFunctions from '../utils/genetarePassword.js';
+import * as passFunctions from '../utils/generatePassword.js';
 import jwt from 'jsonwebtoken';
+import { createAccessToken, createRefreashToken } from "../utils/generateTokens.js";
+
+
 
 const register = async (req, res) => {
-
     try {
         const { name, email, password } = req.body
         const existUsers = await userModel.find({ email })
@@ -42,8 +44,9 @@ const login = async (req, res) => {
         const validPass = passFunctions.compare(user.password, salt, password);
 
         if (validPass) {
-            const accessToken = jwt.sign({ name: user.name, email: user.email }, process.env.ACCESS_TOKEN_KEY);
-            res.json({ accessToken });
+            const accessToken = createAccessToken(user);
+            const refreshToken = await createRefreashToken(user);
+            res.json({ accessToken, refreshToken });
         } else {
             return res.sendStatus(401);
         }
@@ -64,12 +67,13 @@ const verifyToken = (req, res, next) => {
             return res.sendStatus(401)
         }
         else {
-            req.user = user
+            req.user = { name: user.name }
             next();
         }
     })
 
 }
+
 
 const protectedFunc = (req, res) => {
     console.log(req.user)
