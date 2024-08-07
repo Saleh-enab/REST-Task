@@ -51,7 +51,29 @@ const login = async (req, res) => {
     } catch (err) {
         console.log(err);
     }
+}
+
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader.split(" ")[1]
+
+    if (!token) return res.sendStatus(401)
+    jwt.verify(token, process.env.ACCESS_TOKEN_KEY, (err, user) => {
+        if (err) {
+            console.log(err)
+            return res.sendStatus(401)
+        }
+        else {
+            req.user = user
+            next();
+        }
+    })
 
 }
 
-export { register, login }
+const protectedFunc = (req, res) => {
+    console.log(req.user)
+    res.send("Authorized User")
+}
+
+export { register, login, verifyToken, protectedFunc }
